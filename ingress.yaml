@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: web-collector-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"   
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    acme.cert-manager.io/http01-ingress-class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - otelwebtelemetry.com
+    secretName: web-collector-tls-prod
+  rules:
+  - host: otelwebtelemetry.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: web-collector-svc
+          servicePort: 80

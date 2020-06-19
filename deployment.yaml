@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: web-collector-deployment
+  labels:
+    app: opentelemetry-collector
+    component: web-collector
+spec:
+  selector:
+    matchLabels:
+      app: opentelemetry-collector
+      component: web-collector
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: opentelemetry-collector
+        component: web-collector
+    spec:
+      containers:
+      - command:
+        - "/otelcol"
+        - "--config=/conf/web-collector-config.yaml"
+        - "--mem-ballast-size-mib=700"
+        image: otel/opentelemetry-collector-dev:latest
+        name: web-collector
+        resources:
+          limits:
+            cpu: 1
+            memory: 1500Mi
+          requests:
+            cpu: 200m
+            memory: 700Mi
+        ports:
+        - containerPort: 55680
+        volumeMounts:
+        - name: web-collector-config-vol
+          mountPath: /conf
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133
+      volumes:
+        - configMap:
+            name: web-collector-conf
+            items:
+              - key: web-collector-config
+                path: web-collector-config.yaml
+          name: web-collector-config-vol
+
+
